@@ -5,6 +5,11 @@ import numpy as np
 import wave,datetime,os
 import gpiozero
 import RPi.GPIO as GPIO
+from serial import Serial
+import time
+import json
+
+ser = Serial ("/dev/ttyS0", 9600) 
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -18,6 +23,7 @@ def button_press():
     print('Salvando..')
     file_name= data_saver(t_0, data_frames, data_chunks) # save the data as a .wav file
     print(f'Salvo {file_name}')
+    transcribe(file_name)
 
 botao = gpiozero.Button(3)
 
@@ -26,10 +32,15 @@ botao.when_pressed = button_press
 
 def pyserial_start():
     audio = pyaudio.PyAudio() # create pyaudio instantiation
-  
 
-    stream = audio.open(format = pyaudio_format,rate = samp_rate,channels = chans, input_device_index = dev_index,input = True,frames_per_buffer=CHUNK)
-                        
+    # Ajuste o ganho (intensidade do sinal de entrada)
+    stream = audio.open(format = pyaudio_format,
+                        rate = samp_rate,
+                        channels = chans,
+                        input_device_index = dev_index,
+                        input = True,
+                        frames_per_buffer=CHUNK)
+
     stream.stop_stream() # stop stream to prevent overload
     return stream,audio
 
@@ -89,8 +100,33 @@ def transcribe(file_name):
     print(response.text)
 
 
+def send_ean(ean):
+    url = "https://rq0ak44zy0.execute-api.sa-east-1.amazonaws.com/Prod/api/v1/carrinho"
+
+    payload = json.dumps({
+        "codigoDeBarras": ean,
+        "quantidade": 1
+    })
+    headers = {
+        'token': '7f4e2164a8e8ef0be122d2cbd1ff61e79d4973cfd29cc9917fb4b8ff3d87bd7b',
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    print(response.text)
+
+
+
 def loop():
-    pass
+    print('Esperando Leitura de código de barras')
+    received_data = ser.read()              #read serial port
+    time.sleep(0.03)
+    data_left = ser.inWaiting()             #check for remaining byte
+    received_data += ser.read(data_left)
+    ean = f'{received_data.decode("utf8").split()[0]}'
+    send_ean(ean)
+    print(ean)
 
 
 if __name__=="__main__":
@@ -111,11 +147,9 @@ if __name__=="__main__":
     #############################
     #
     stream,audio = pyserial_start() # start the pyaudio stream   
-     # seconds to record
     
     while 1:
         loop()
 
-    # transcribe(file_name)
     pyserial_end() # close the stream/pyaudio connection
    
