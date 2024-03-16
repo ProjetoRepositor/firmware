@@ -11,6 +11,9 @@ import json
 
 ser = Serial ("/dev/ttyS0", 9600) 
 
+with open('/home/victor/token.txt') as f:
+    token = f.read().split()[0]
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(21,GPIO.OUT)
@@ -86,13 +89,12 @@ def data_saver(t_0, data_frames, data_chunks):
 
 def transcribe(file_name):
     url = "http://localhost:800/api/audio"
-#token 7f4e2164a8e8ef0be122d2cbd1ff61e79d4973cfd29cc9917fb4b8ff3d87bd7b
     with open(f'data/{file_name}.wav', 'rb') as f:
         payload = f.read()
 
     headers = {
     'Content-Type': 'audio/wave',
-    'token': '7f4e2164a8e8ef0be122d2cbd1ff61e79d4973cfd29cc9917fb4b8ff3d87bd7b'
+    'token': token
     }
 
     response = requests.request("POST", url, headers=headers, data=payload)
@@ -108,7 +110,7 @@ def send_ean(ean):
         "quantidade": 1
     })
     headers = {
-        'token': '7f4e2164a8e8ef0be122d2cbd1ff61e79d4973cfd29cc9917fb4b8ff3d87bd7b',
+        'token': token,
         'Content-Type': 'application/json'
     }
 
