@@ -8,11 +8,6 @@ import RPi.GPIO as GPIO
 from serial import Serial
 import time
 import json
-import threading
-import os
-
-tr = threading.Thread(target=lambda: os.system('sudo python wifi.py'))
-tr.start()
 
 ser = Serial ("/dev/ttyS0", 9600) 
 
