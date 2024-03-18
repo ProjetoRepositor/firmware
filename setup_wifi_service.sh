@@ -1,4 +1,4 @@
-sudo cp wifi.py /etc/systemd/system/wifi_config.service
+sudo cp wifi_config.service /etc/systemd/system/wifi_config.service
 
 sudo systemctl daemon-reload
 
