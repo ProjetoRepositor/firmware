@@ -11,9 +11,6 @@ import json
 
 ser = Serial ("/dev/ttyS0", 9600) 
 
-with open('/home/victor/token.txt') as f:
-    token = f.read().split()[0]
-
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(21,GPIO.OUT)
@@ -92,6 +89,9 @@ def transcribe(file_name):
     with open(f'data/{file_name}.wav', 'rb') as f:
         payload = f.read()
 
+    with open('/home/victor/token.txt') as f:
+        token = f.read().split()[0]
+
     headers = {
     'Content-Type': 'audio/wave',
     'token': token
@@ -104,6 +104,9 @@ def transcribe(file_name):
 
 def send_ean(ean):
     url = "https://rq0ak44zy0.execute-api.sa-east-1.amazonaws.com/Prod/api/v1/carrinho"
+
+    with open('/home/victor/token.txt') as f:
+        token = f.read().split()[0]
 
     payload = json.dumps({
         "codigoDeBarras": ean,
