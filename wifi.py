@@ -45,7 +45,7 @@ while True:
             if ssid and password and token:
                 # Configura o Wi-Fi com os dados recebidos
                 configure_wifi(ssid, password)
-                print(os.system(f'echo "{token}" > ~/token.txt'))
+                print(os.system(f'sudo echo "{token}" > /home/victor/token.txt'))
         except json.JSONDecodeError:
             print("Erro ao decodificar JSON")
 
