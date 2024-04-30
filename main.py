@@ -8,6 +8,7 @@ import RPi.GPIO as GPIO
 from serial import Serial
 import time
 import json
+import threading
 
 ser = Serial ("/dev/ttyS0", 9600) 
 
@@ -23,7 +24,7 @@ def button_press():
     print('Salvando..')
     file_name= data_saver(t_0, data_frames, data_chunks) # save the data as a .wav file
     print(f'Salvo {file_name}')
-    transcribe(file_name)
+    run_in_thread(lambda : transcribe(file_name))
 
 botao = gpiozero.Button(3)
 
@@ -124,15 +125,20 @@ def send_ean(ean):
 
 
 def loop():
-    print('Esperando Leitura de código de barras')
-    received_data = ser.read()              #read serial port
-    time.sleep(0.03)
-    data_left = ser.inWaiting()             #check for remaining byte
-    received_data += ser.read(data_left)
-    ean = f'{received_data.decode("utf8").split()[0]}'
-    send_ean(ean)
-    print(ean)
+    while 1:
+        print('Esperando Leitura de código de barras')
+        received_data = ser.read()              #read serial port
+        time.sleep(0.03)
+        data_left = ser.inWaiting()             #check for remaining byte
+        received_data += ser.read(data_left)
+        ean = f'{received_data.decode("utf8").split()[0]}'
+        send_ean(ean)
+        print(ean)
 
+
+def run_in_thread(fn):
+    thread = threading.Thread(target=fn)
+    thread.start()
 
 if __name__=="__main__":
     #
@@ -153,8 +159,10 @@ if __name__=="__main__":
     #
     stream,audio = pyserial_start() # start the pyaudio stream   
     
+    run_in_thread(loop)
+
     while 1:
-        loop()
+        pass
 
     pyserial_end() # close the stream/pyaudio connection
    
